@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PDF Dark Mode Pro</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+
+    <style>
+        :root { --primary: #00f2ff; --secondary: #bd00ff; --bg: #0f0f13; --card-bg: rgba(25, 25, 30, 0.95); --text: #ffffff; }
+        body { background-color: var(--bg); background-image: linear-gradient(135deg, #0f0f13 0%, #1a1a2e 100%); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        
+        /* Language Switcher */
+        .lang-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 5px;
+            display: flex;
+            gap: 5px;
+            backdrop-filter: blur(5px);
+            z-index: 100;
+        }
+        
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .lang-btn.active {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.4);
+        }
+
+        .container { width: 100%; max-width: 600px; background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 25px; text-align: center; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); position: relative; display: flex; flex-direction: column; gap: 20px; margin-top: 40px; }
+        .container::before { content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 3px; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 0 0 10px 10px; box-shadow: 0 0 15px var(--primary); }
+        
+        h1 { margin: 10px 0 0 0; font-size: 1.8rem; background: linear-gradient(to right, #fff, #bbb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        p.subtitle { color: #888; margin: 0; font-size: 0.9em; }
+        
+        .drop-zone { border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 16px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); cursor: pointer; transition: all 0.3s; position: relative; }
+        .drop-zone:hover, .drop-zone:active { border-color: var(--primary); background: rgba(0, 242, 255, 0.05); }
+        .drop-zone i { font-size: 40px; color: #555; margin-bottom: 10px; }
+        
+        .file-info { display: none; margin-top: 10px; color: var(--primary); font-weight: 600; background: rgba(0, 242, 255, 0.1); padding: 6px 12px; border-radius: 8px; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #fileInput { display: none; }
+        
+        .btn-convert { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; font-weight: 700; border: none; border-radius: 12px; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 5px 15px rgba(0, 242, 255, 0.2); transition: transform 0.2s; }
+        .btn-convert:active { transform: scale(0.98); }
+        .btn-convert:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
+        
+        #preview-area { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .preview-grid { display: flex; gap: 15px; }
+        .preview-card { flex: 1; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .preview-card h4 { margin: 0 0 10px 0; color: #aaa; font-size: 0.8rem; text-transform: uppercase; display: flex; justify-content: space-between; }
+        
+        canvas { width: 100%; height: auto; border-radius: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        #status { font-size: 0.9em; color: #666; margin-top: 15px; min-height: 1.2em; }
+        @media (max-width: 600px) { .preview-grid { flex-direction: column; } }
+    </style>
+</head>
+<body>
+
+<div class="lang-switch">
+    <button class="lang-btn active" onclick="setLanguage('tr')" id="btn-tr">TR</button>
+    <button class="lang-btn" onclick="setLanguage('en')" id="btn-en">EN</button>
+</div>
+
+<div class="container">
+    <h1 id="txt-title">Dark Mode PDF</h1>
+    <p class="subtitle" id="txt-subtitle">Yapay Zeka Destekli Dönüştürücü</p>
+
+    <label for="fileInput" class="drop-zone" id="dropZone">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <div id="dropText">PDF Dosyası Seç</div>
+        <div class="file-info" id="fileInfo"></div>
+    </label>
+    <input type="file" id="fileInput" accept="application/pdf">
+
+    <button class="btn-convert" id="convertBtn">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span id="txt-btn-convert">Dönüştür</span>
+    </button>
+
+    <div id="status">...</div>
+
+    <div id="preview-area">
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h4 id="txt-orig">Orijinal</h4>
+                <canvas id="canvas-original"></canvas>
+            </div>
+            <div class="preview-card">
+                <h4 style="color:var(--primary)">Dark Mode</h4>
+                <canvas id="canvas-dark"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- ÇOKLU DİL SÖZLÜĞÜ ---
+    const translations = {
+        tr: {
+            title: "Dark Mode PDF",
+            subtitle: "Yapay Zeka Destekli Dönüştürücü",
+            dropText: "PDF Dosyası Seç",
+            btnConvert: "Dönüştür",
+            btnOpen: "Dosyayı Aç",
+            btnDownload: "İndir / Paylaş",
+            statusReady: "Hazır.",
+            statusSelect: "Lütfen önce bir dosya seçin!",
+            statusProcessing: "İşleniyor...",
+            statusPreparing: "Sayfa hazırlanıyor:",
+            statusPreview: "Önizleme...",
+            statusComplete: "Tamamlandı!",
+            statusOpening: "Dosya açılıyor...",
+            statusOpened: "Dosya ekranda açıldı.",
+            statusDownloaded: "Bilgisayara indirildi.",
+            orig: "Orijinal",
+            error: "Hata:"
+        },
+        en: {
+            title: "Dark Mode PDF",
+            subtitle: "AI Powered Converter",
+            dropText: "Select PDF File",
+            btnConvert: "Convert",
+            btnOpen: "Open File",
+            btnDownload: "Download / Share",
+            statusReady: "Ready.",
+            statusSelect: "Please select a file first!",
+            statusProcessing: "Processing...",
+            statusPreparing: "Preparing page:",
+            statusPreview: "Generating preview...",
+            statusComplete: "Completed!",
+            statusOpening: "Opening file...",
+            statusOpened: "File opened on screen.",
+            statusDownloaded: "Downloaded to computer.",
+            orig: "Original",
+            error: "Error:"
+        }
+    };
+
+    let currentLang = 'tr'; // Varsayılan Dil
+
+    // --- DOM ELEMENTLERİ ---
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const dropText = document.getElementById('dropText');
+    const status = document.getElementById('status');
+    const icon = dropZone.querySelector('i');
+    const previewArea = document.getElementById('preview-area');
+    const btn = document.getElementById("convertBtn");
+    const btnSpan = document.getElementById("txt-btn-convert");
+
+    // --- BAŞLANGIÇ ---
+    // Önceki dil tercihini hatırla
+    if(localStorage.getItem('prefLang')) {
+        setLanguage(localStorage.getItem('prefLang'));
+    } else {
+        setLanguage('tr');
+    }
+
+    fileInput.addEventListener('change', function() { if (this.files.length > 0) handleFile(this.files[0]); });
+    btn.onclick = convertPDF;
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
+    });
+
+    dropZone.addEventListener('dragover', () => dropZone.classList.add('dragover'));
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0 && e.dataTransfer.files[0].type === "application/pdf") {
+            fileInput.files = e.dataTransfer.files;
+            handleFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    // --- DİL DEĞİŞTİRME FONKSİYONU ---
+    function setLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('prefLang', lang); // Tercihi kaydet
+
+        // Buton stillerini güncelle
+        document.getElementById('btn-tr').classList.toggle('active', lang === 'tr');
+        document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+
+        // Metinleri güncelle
+        const t = translations[lang];
+        document.getElementById('txt-title').innerText = t.title;
+        document.getElementById('txt-subtitle').innerText = t.subtitle;
+        document.getElementById('dropText').innerText = t.dropText;
+        document.getElementById('txt-orig').innerText = t.orig;
+        
+        // Eğer işlem yapılmıyorsa buton ve durumu güncelle
+        if (!btn.disabled) {
+             // Dosya seçilmiş mi kontrolü (basit mantık)
+             if(fileInfo.style.display === 'block') {
+                 // Eğer işlem bitmişse (Dosya Aç butonu varsa)
+                 if(btn.innerHTML.includes('fa-eye')) {
+                     btn.innerHTML = `<i class="fa-solid fa-eye"></i> ${t.btnOpen}`;
+                 } else {
+                     btnSpan.innerText = t.btnConvert;
+                 }
+             } else {
+                 btnSpan.innerText = t.btnConvert;
+                 status.innerText = t.statusReady;
+             }
+        }
+    }
+
+    function handleFile(file) {
+        const t = translations[currentLang];
+        dropText.style.display = 'none';
+        icon.className = 'fa-solid fa-file-pdf';
+        icon.style.color = 'var(--primary)';
+        fileInfo.innerText = file.name;
+        fileInfo.style.display = 'block';
+        status.innerText = t.statusReady;
+        previewArea.style.display = 'none';
+        
+        btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span id="txt-btn-convert">${t.btnConvert}</span>`;
+        btn.onclick = convertPDF; 
+        btn.style.background = "linear-gradient(135deg, var(--primary), var(--secondary))";
+    }
+
+    async function convertPDF() {
+        const t = translations[currentLang];
+        
+        if (!fileInput.files[0]) { status.innerText = t.statusSelect; return; }
+        const file = fileInput.files[0];
+
+        try {
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> ${t.statusProcessing}`;
+            status.innerText = t.statusProcessing;
+            status.style.color = "var(--primary)";
+
+            const arrayBuffer = await file.arrayBuffer();
+            const originalPdf = await PDFLib.PDFDocument.load(arrayBuffer);
+            const newPdf = await PDFLib.PDFDocument.create();
+            const embeddedPages = await newPdf.embedPages(originalPdf.getPages());
+
+            let count = 1;
+            for (const embeddedPage of embeddedPages) {
+                if (count % 10 === 0) await new Promise(r => setTimeout(r, 0));
+                
+                status.innerText = `${t.statusPreparing} ${count} / ${embeddedPages.length}`;
+                
+                const { width, height } = embeddedPage.size();
+                const newPage = newPdf.addPage([width, height]);
+                newPage.drawRectangle({ x: 0, y: 0, width, height, color: PDFLib.rgb(1, 1, 1) });
+                newPage.drawPage(embeddedPage, { x: 0, y: 0, width, height });
+                newPage.drawRectangle({ x: 0, y: 0, width, height, color: PDFLib.rgb(1, 1, 1), blendMode: PDFLib.BlendMode.Difference });
+                count++;
+            }
+
+            status.innerText = t.statusPreview;
+            const pdfBytes = await newPdf.save();
+            const blob = new Blob([pdfBytes], { type: "application/pdf" });
+            await renderPreview(arrayBuffer, await blob.arrayBuffer());
+
+            status.innerText = t.statusComplete;
+            status.style.color = "#00e676";
+            
+            btn.disabled = false;
+            // Dil desteğiyle buton metni
+            btn.innerHTML = `<i class="fa-solid fa-eye"></i> ${t.btnOpen}`;
+            btn.style.background = "linear-gradient(135deg, #00e676, #00c853)";
+
+            btn.onclick = async () => {
+                const fileName = "dark-mode-" + file.name;
+                
+                if (window.Capacitor && window.Capacitor.Plugins.Filesystem && window.Capacitor.Plugins.FileOpener) {
+                    try {
+                        status.innerText = t.statusOpening;
+                        const base64Data = await blobToBase64(blob);
+                        
+                        const savedFile = await window.Capacitor.Plugins.Filesystem.writeFile({
+                            path: fileName,
+                            data: base64Data,
+                            directory: 'DOCUMENTS'
+                        });
+
+                        await window.Capacitor.Plugins.FileOpener.openFile({
+                            path: savedFile.uri,
+                        });
+                        
+                        status.innerText = t.statusOpened;
+                    } catch (err) {
+                        console.error("Mobil açma hatası:", err);
+                        alert(t.error + " PDF Görüntüleyici bulunamadı.\n" + err.message);
+                    }
+                } 
+                else {
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = fileName;
+                    link.click();
+                    status.innerText = t.statusDownloaded;
+                }
+            };
+
+        } catch (err) {
+            console.error(err);
+            alert(t.error + " " + err.message);
+            btn.innerHTML = 'Hata';
+            btn.disabled = false;
+        }
+    }
+
+    function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result.replace("data:application/pdf;base64,", "");
+                resolve(base64String);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    async function renderPreview(origBuf, newBuf) {
+        previewArea.style.display = 'block';
+        await renderPage(origBuf, 'canvas-original');
+        await renderPage(newBuf, 'canvas-dark');
+    }
+
+    async function renderPage(buffer, canvasId) {
+        try {
+            const loadingTask = pdfjsLib.getDocument(buffer);
+            const pdf = await loadingTask.promise;
+            const page = await pdf.getPage(1);
+            const canvas = document.getElementById(canvasId);
+            const context = canvas.getContext('2d');
+            const desiredWidth = canvas.parentElement.clientWidth;
+            const viewport = page.getViewport({ scale: 1.0 });
+            const scale = (desiredWidth / viewport.width);
+            const scaledViewport = page.getViewport({ scale: scale });
+            canvas.height = scaledViewport.height;
+            canvas.width = scaledViewport.width;
+            await page.render({ canvasContext: context, viewport: scaledViewport }).promise;
+        } catch(e) { console.log(e); }
+    }
+</script>
+
+</body>
+</html>
