@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PDF Dark Mode Pro</title>
     
+    <title>PDF Dark Mode Online - Free Night Mode Converter</title>
+    <meta name="description" content="Convert PDF to Dark Mode online for free. AI-powered tool to invert colors for night reading and reduce eye strain. No installation required.">
+    <meta name="keywords" content="pdf dark mode, night mode pdf, invert pdf colors, dark reader for pdf, eye protection, online pdf converter, dark mode pdf android">
+    
+    <meta property="og:title" content="PDF Dark Mode - Save Your Eyes">
+    <meta property="og:description" content="Turn bright PDFs into dark mode instantly. Free online tool to invert colors. Try it now!">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
@@ -15,96 +20,85 @@
 
     <style>
         :root { --primary: #00f2ff; --secondary: #bd00ff; --bg: #0f0f13; --card-bg: rgba(25, 25, 30, 0.95); --text: #ffffff; }
-        body { background-color: var(--bg); background-image: linear-gradient(135deg, #0f0f13 0%, #1a1a2e 100%); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
-        
-        /* Language Switcher */
-        .lang-switch {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 5px;
-            display: flex;
-            gap: 5px;
-            backdrop-filter: blur(5px);
-            z-index: 100;
-        }
-        
-        .lang-btn {
-            background: transparent;
-            border: none;
-            color: #888;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .lang-btn.active {
-            background: var(--primary);
-            color: #000;
-            box-shadow: 0 0 10px rgba(0, 242, 255, 0.4);
-        }
+        body { background-color: var(--bg); background-image: linear-gradient(135deg, #0f0f13 0%, #1a1a2e 100%); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; min-height: 100vh; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box; }
 
-        .container { width: 100%; max-width: 600px; background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 25px; text-align: center; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); position: relative; display: flex; flex-direction: column; gap: 20px; margin-top: 40px; }
+        .container { width: 100%; max-width: 600px; background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 25px; text-align: center; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); position: relative; display: flex; flex-direction: column; gap: 20px; margin-top: 20px; }
         .container::before { content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 3px; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 0 0 10px 10px; box-shadow: 0 0 15px var(--primary); }
-        
-        h1 { margin: 10px 0 0 0; font-size: 1.8rem; background: linear-gradient(to right, #fff, #bbb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .lang-switch { position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 4px; display: flex; gap: 4px; z-index: 10; }
+        .lang-btn { background: transparent; border: none; color: #666; padding: 4px 12px; border-radius: 15px; font-size: 0.75rem; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .lang-btn.active { background: var(--primary); color: #000; box-shadow: 0 0 8px rgba(0, 242, 255, 0.3); }
+
+        h1 { margin: 25px 0 0 0; font-size: 1.8rem; background: linear-gradient(to right, #fff, #bbb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         p.subtitle { color: #888; margin: 0; font-size: 0.9em; }
-        
-        .drop-zone { border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 16px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); cursor: pointer; transition: all 0.3s; position: relative; }
+
+        .drop-zone { border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 16px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); cursor: pointer; transition: all 0.3s; position: relative; margin-top: 10px; }
         .drop-zone:hover, .drop-zone:active { border-color: var(--primary); background: rgba(0, 242, 255, 0.05); }
         .drop-zone i { font-size: 40px; color: #555; margin-bottom: 10px; }
-        
+
         .file-info { display: none; margin-top: 10px; color: var(--primary); font-weight: 600; background: rgba(0, 242, 255, 0.1); padding: 6px 12px; border-radius: 8px; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         #fileInput { display: none; }
-        
+
         .btn-convert { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; font-weight: 700; border: none; border-radius: 12px; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 5px 15px rgba(0, 242, 255, 0.2); transition: transform 0.2s; }
         .btn-convert:active { transform: scale(0.98); }
         .btn-convert:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
-        
+
         #preview-area { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
         .preview-grid { display: flex; gap: 15px; }
         .preview-card { flex: 1; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
         .preview-card h4 { margin: 0 0 10px 0; color: #aaa; font-size: 0.8rem; text-transform: uppercase; display: flex; justify-content: space-between; }
-        
+
         canvas { width: 100%; height: auto; border-radius: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         #status { font-size: 0.9em; color: #666; margin-top: 15px; min-height: 1.2em; }
-        @media (max-width: 600px) { .preview-grid { flex-direction: column; } }
+
+        /* SEO Footer Metni (Google Botları İçin - İngilizce) */
+        .seo-footer { max-width: 800px; margin: 40px auto; color: #666; font-size: 0.85em; line-height: 1.6; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
+        .seo-footer h2, .seo-footer h3 { color: #aaa; font-size: 1.1em; margin-bottom: 10px; }
+
+        /* --- MODAL CSS --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: #1a1a2e; border: 1px solid var(--primary); padding: 30px; border-radius: 24px; text-align: center; width: 85%; max-width: 320px; box-shadow: 0 0 30px rgba(0, 242, 255, 0.2); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-icon { font-size: 3rem; color: #ffd700; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5)); }
+        .modal-title { font-size: 1.2rem; color: #fff; margin-bottom: 10px; font-weight: bold; }
+        .modal-desc { font-size: 0.9rem; color: #aaa; margin-bottom: 20px; line-height: 1.4; }
+        .modal-btns { display: flex; flex-direction: column; gap: 10px; }
+        .btn-rate { background: var(--primary); color: #000; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-rate:active { transform: scale(0.95); }
+        .btn-cancel { background: transparent; border: 1px solid #444; color: #888; padding: 10px; border-radius: 12px; font-size: 0.85rem; cursor: pointer; }
+
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @media (max-width: 600px) { .preview-grid { flex-direction: column; } .seo-footer { padding: 20px; } }
     </style>
 </head>
 <body>
 
-<div class="lang-switch">
-    <button class="lang-btn active" onclick="setLanguage('tr')" id="btn-tr">TR</button>
-    <button class="lang-btn" onclick="setLanguage('en')" id="btn-en">EN</button>
-</div>
-
 <div class="container">
+    <div class="lang-switch">
+        <button class="lang-btn" onclick="setLanguage('tr')" id="btn-tr">TR</button>
+        <button class="lang-btn active" onclick="setLanguage('en')" id="btn-en">EN</button>
+    </div>
+
     <h1 id="txt-title">Dark Mode PDF</h1>
-    <p class="subtitle" id="txt-subtitle">Yapay Zeka Destekli Dönüştürücü</p>
+    <p class="subtitle" id="txt-subtitle">AI Powered Converter</p>
 
     <label for="fileInput" class="drop-zone" id="dropZone">
         <i class="fa-solid fa-cloud-arrow-up"></i>
-        <div id="dropText">PDF Dosyası Seç</div>
+        <div id="dropText">Select PDF File</div>
         <div class="file-info" id="fileInfo"></div>
     </label>
     <input type="file" id="fileInput" accept="application/pdf">
 
     <button class="btn-convert" id="convertBtn">
         <i class="fa-solid fa-wand-magic-sparkles"></i>
-        <span id="txt-btn-convert">Dönüştür</span>
+        <span id="txt-btn-convert">Convert</span>
     </button>
 
-    <div id="status">...</div>
+    <div id="status">Ready.</div>
 
     <div id="preview-area">
         <div class="preview-grid">
             <div class="preview-card">
-                <h4 id="txt-orig">Orijinal</h4>
+                <h4 id="txt-orig">Original</h4>
                 <canvas id="canvas-original"></canvas>
             </div>
             <div class="preview-card">
@@ -115,8 +109,36 @@
     </div>
 </div>
 
+<div class="seo-footer">
+    <h2>Why Use PDF Dark Mode?</h2>
+    <p>Reading bright white PDF documents at night or in low light can cause severe eye strain and disrupt your sleep cycle. 
+    Our <strong>PDF Dark Mode Pro</strong> tool uses advanced algorithms to intelligently invert colors, making documents easier to read without compromising text clarity.</p>
+    
+    <h3>Free Online Night Mode Converter</h3>
+    <p>No need to install heavy software on your PC or mobile. Convert your files directly in your browser with 100% privacy. 
+    Files are processed locally and never uploaded to any server. Perfect for students, researchers, and night readers.</p>
+</div>
+
+<div id="rateModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-icon"><i class="fa-solid fa-star" id="modal-icon-i"></i></div>
+        <div class="modal-title" id="txt-rate-title">Beğendiniz mi?</div>
+        <div class="modal-desc" id="txt-rate-desc">Uygulamamızı geliştirmemize yardımcı olmak için Play Store'da puan verir misiniz?</div>
+        <div class="modal-btns">
+            <button class="btn-rate" onclick="rateOrDownload()" id="btn-rate-now">Puan Ver (5 Yıldız)</button>
+            <button class="btn-cancel" onclick="dontShowAgain()" id="btn-rate-never">Bir daha gösterme</button>
+            <button class="btn-cancel" style="border:none; color:#555; padding:5px" onclick="closeRateModal()">Belki sonra</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    // --- ÇOKLU DİL SÖZLÜĞÜ ---
+    // --- UYGULAMA PAKET İSMİNİ BURADAN GÜNCELLE ---
+    const APP_PACKAGE_NAME = "com.btayg.pdfdarkmode";
+
+    // PLATFORM KONTROLÜ (Mobil Uygulama mı Web mi?)
+    const isApp = (window.Android || (window.Capacitor && window.Capacitor.isNative));
+
     const translations = {
         tr: {
             title: "Dark Mode PDF",
@@ -124,7 +146,6 @@
             dropText: "PDF Dosyası Seç",
             btnConvert: "Dönüştür",
             btnOpen: "Dosyayı Aç",
-            btnDownload: "İndir / Paylaş",
             statusReady: "Hazır.",
             statusSelect: "Lütfen önce bir dosya seçin!",
             statusProcessing: "İşleniyor...",
@@ -135,7 +156,16 @@
             statusOpened: "Dosya ekranda açıldı.",
             statusDownloaded: "Bilgisayara indirildi.",
             orig: "Orijinal",
-            error: "Hata:"
+            error: "Hata:",
+            // Mobil İçin Metinler
+            rateTitle: "Uygulamayı Beğendiniz mi?",
+            rateDesc: "Bize destek olmak için Play Store'da 5 yıldız verirseniz çok mutlu oluruz!",
+            rateNow: "Şimdi Puan Ver",
+            rateNever: "Bir Daha Gösterme",
+            // Web İçin Metinler
+            webTitle: "Android Uygulamamız Çıktı!",
+            webDesc: "Daha hızlı dönüştürme, internetsiz kullanım ve gelişmiş özellikler için mobil uygulamamızı indirin.",
+            webBtn: "Ücretsiz İndir"
         },
         en: {
             title: "Dark Mode PDF",
@@ -143,7 +173,6 @@
             dropText: "Select PDF File",
             btnConvert: "Convert",
             btnOpen: "Open File",
-            btnDownload: "Download / Share",
             statusReady: "Ready.",
             statusSelect: "Please select a file first!",
             statusProcessing: "Processing...",
@@ -154,13 +183,20 @@
             statusOpened: "File opened on screen.",
             statusDownloaded: "Downloaded to computer.",
             orig: "Original",
-            error: "Error:"
+            error: "Error:",
+            // Mobil Texts
+            rateTitle: "Enjoying the App?",
+            rateDesc: "Would you mind rating us on the Play Store? It helps a lot!",
+            rateNow: "Rate Now",
+            rateNever: "Don't Show Again",
+            // Web Texts
+            webTitle: "Get the Android App!",
+            webDesc: "Download our app for faster conversion, offline mode, and premium features.",
+            webBtn: "Download Free"
         }
     };
 
-    let currentLang = 'tr'; // Varsayılan Dil
-
-    // --- DOM ELEMENTLERİ ---
+    let currentLang = 'en';
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
     const fileInfo = document.getElementById('fileInfo');
@@ -171,13 +207,8 @@
     const btn = document.getElementById("convertBtn");
     const btnSpan = document.getElementById("txt-btn-convert");
 
-    // --- BAŞLANGIÇ ---
-    // Önceki dil tercihini hatırla
-    if(localStorage.getItem('prefLang')) {
-        setLanguage(localStorage.getItem('prefLang'));
-    } else {
-        setLanguage('tr');
-    }
+    const savedLang = localStorage.getItem('appLanguage');
+    if(savedLang) { setLanguage(savedLang); } else { setLanguage('en'); }
 
     fileInput.addEventListener('change', function() { if (this.files.length > 0) handleFile(this.files[0]); });
     btn.onclick = convertPDF;
@@ -196,27 +227,37 @@
         }
     });
 
-    // --- DİL DEĞİŞTİRME FONKSİYONU ---
     function setLanguage(lang) {
         currentLang = lang;
-        localStorage.setItem('prefLang', lang); // Tercihi kaydet
-
-        // Buton stillerini güncelle
+        localStorage.setItem('appLanguage', lang);
         document.getElementById('btn-tr').classList.toggle('active', lang === 'tr');
         document.getElementById('btn-en').classList.toggle('active', lang === 'en');
 
-        // Metinleri güncelle
         const t = translations[lang];
         document.getElementById('txt-title').innerText = t.title;
         document.getElementById('txt-subtitle').innerText = t.subtitle;
         document.getElementById('dropText').innerText = t.dropText;
         document.getElementById('txt-orig').innerText = t.orig;
+
+        // PLATFORM KONTROLÜNE GÖRE METİN AYARLAMA
+        if (isApp) {
+            // Eğer Mobildeyse (Puan İsteme)
+            document.getElementById('txt-rate-title').innerText = t.rateTitle;
+            document.getElementById('txt-rate-desc').innerText = t.rateDesc;
+            document.getElementById('btn-rate-now').innerText = t.rateNow;
+            document.getElementById('modal-icon-i').className = "fa-solid fa-star";
+        } else {
+            // Eğer Websitesi/PC ise (İndirme İsteme)
+            document.getElementById('txt-rate-title').innerText = t.webTitle;
+            document.getElementById('txt-rate-desc').innerText = t.webDesc;
+            document.getElementById('btn-rate-now').innerText = t.webBtn;
+            document.getElementById('modal-icon-i').className = "fa-brands fa-google-play"; // İkonu değiştir
+        }
         
-        // Eğer işlem yapılmıyorsa buton ve durumu güncelle
+        document.getElementById('btn-rate-never').innerText = t.rateNever;
+
         if (!btn.disabled) {
-             // Dosya seçilmiş mi kontrolü (basit mantık)
              if(fileInfo.style.display === 'block') {
-                 // Eğer işlem bitmişse (Dosya Aç butonu varsa)
                  if(btn.innerHTML.includes('fa-eye')) {
                      btn.innerHTML = `<i class="fa-solid fa-eye"></i> ${t.btnOpen}`;
                  } else {
@@ -238,17 +279,22 @@
         fileInfo.style.display = 'block';
         status.innerText = t.statusReady;
         previewArea.style.display = 'none';
-        
+
         btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span id="txt-btn-convert">${t.btnConvert}</span>`;
-        btn.onclick = convertPDF; 
+        btn.onclick = convertPDF;
         btn.style.background = "linear-gradient(135deg, var(--primary), var(--secondary))";
     }
 
     async function convertPDF() {
         const t = translations[currentLang];
-        
+
         if (!fileInput.files[0]) { status.innerText = t.statusSelect; return; }
         const file = fileInput.files[0];
+
+        // Sadece Mobilde Reklam Göster
+        if (isApp && window.Android && window.Android.showBigAd) {
+            window.Android.showBigAd();
+        }
 
         try {
             btn.disabled = true;
@@ -264,9 +310,7 @@
             let count = 1;
             for (const embeddedPage of embeddedPages) {
                 if (count % 10 === 0) await new Promise(r => setTimeout(r, 0));
-                
                 status.innerText = `${t.statusPreparing} ${count} / ${embeddedPages.length}`;
-                
                 const { width, height } = embeddedPage.size();
                 const newPage = newPdf.addPage([width, height]);
                 newPage.drawRectangle({ x: 0, y: 0, width, height, color: PDFLib.rgb(1, 1, 1) });
@@ -282,37 +326,35 @@
 
             status.innerText = t.statusComplete;
             status.style.color = "#00e676";
-            
+
             btn.disabled = false;
-            // Dil desteğiyle buton metni
             btn.innerHTML = `<i class="fa-solid fa-eye"></i> ${t.btnOpen}`;
             btn.style.background = "linear-gradient(135deg, #00e676, #00c853)";
 
+            // Dönüştürme bitince Puanlama veya İndirme Modalını aç
+            setTimeout(() => {
+                checkAndShowRateModal();
+            }, 1500);
+
             btn.onclick = async () => {
                 const fileName = "dark-mode-" + file.name;
-                
-                if (window.Capacitor && window.Capacitor.Plugins.Filesystem && window.Capacitor.Plugins.FileOpener) {
+                // Sadece Mobilde Dosya Sistemine Kayıt (Capacitor)
+                if (isApp && window.Capacitor && window.Capacitor.Plugins.Filesystem && window.Capacitor.Plugins.FileOpener) {
                     try {
                         status.innerText = t.statusOpening;
                         const base64Data = await blobToBase64(blob);
-                        
                         const savedFile = await window.Capacitor.Plugins.Filesystem.writeFile({
                             path: fileName,
                             data: base64Data,
                             directory: 'DOCUMENTS'
                         });
-
-                        await window.Capacitor.Plugins.FileOpener.openFile({
-                            path: savedFile.uri,
-                        });
-                        
+                        await window.Capacitor.Plugins.FileOpener.openFile({ path: savedFile.uri });
                         status.innerText = t.statusOpened;
                     } catch (err) {
-                        console.error("Mobil açma hatası:", err);
-                        alert(t.error + " PDF Görüntüleyici bulunamadı.\n" + err.message);
+                        alert(t.error + " PDF Viewer not found.\n" + err.message);
                     }
-                } 
-                else {
+                } else {
+                    // PC/Web'de Tarayıcı İndirmesi
                     const link = document.createElement("a");
                     link.href = URL.createObjectURL(blob);
                     link.download = fileName;
@@ -332,10 +374,7 @@
     function blobToBase64(blob) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64String = reader.result.replace("data:application/pdf;base64,", "");
-                resolve(base64String);
-            };
+            reader.onloadend = () => { resolve(reader.result.replace("data:application/pdf;base64,", "")); };
             reader.onerror = reject;
             reader.readAsDataURL(blob);
         });
@@ -362,6 +401,40 @@
             canvas.width = scaledViewport.width;
             await page.render({ canvasContext: context, viewport: scaledViewport }).promise;
         } catch(e) { console.log(e); }
+    }
+
+    // --- PUANLAMA & İNDİRME MANTIĞI ---
+    function checkAndShowRateModal() {
+        const dontShow = localStorage.getItem('dontShowRate');
+        if (!dontShow) {
+            document.getElementById('rateModal').style.display = 'flex';
+        }
+    }
+
+    function closeRateModal() {
+        document.getElementById('rateModal').style.display = 'none';
+    }
+
+    function dontShowAgain() {
+        localStorage.setItem('dontShowRate', 'true');
+        closeRateModal();
+    }
+
+    function rateOrDownload() {
+        localStorage.setItem('dontShowRate', 'true');
+        
+        if (isApp) {
+            // MOBİLDEYSE: Mağazaya Puan Vermeye Gider
+            // Android Native veya Capacitor
+            const rateUrl = `market://details?id=${APP_PACKAGE_NAME}`;
+            window.location.href = rateUrl;
+        } else {
+            // WEBDEYSE: Uygulama İndirme Sayfasına Gider
+            const downloadUrl = `https://play.google.com/store/apps/details?id=${APP_PACKAGE_NAME}`;
+            window.open(downloadUrl, '_blank'); // Yeni sekmede aç
+        }
+        
+        closeRateModal();
     }
 </script>
 
